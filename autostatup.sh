@@ -4,6 +4,7 @@
 update_system() {
     echo "Updating system..."
     sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y
+    
      echo "System update complete."
 }
 
