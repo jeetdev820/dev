@@ -1,1 +1,1 @@
-chmod +x install.sh
+chmod +x autostartup.sh
