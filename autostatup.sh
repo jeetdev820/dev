@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 # Function to update the package lists, upgrade installed packages, and clean up
 update_system() {
