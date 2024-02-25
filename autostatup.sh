@@ -1,56 +1,63 @@
-!/bin/bash
+#!/bin/bash
+
+# Define text colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+LGREEN='\033[1;32m' # Light Green
+NC='\033[0m' # No Color
 
 # Function to update the package lists, upgrade installed packages, and clean up
 update_system() {
     if sudo apt update -y && sudo apt upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y; then
-        echo "System update completed successfully."
+        echo -e "${GREEN}System update completed successfully.${NC}"
     else
-        echo "Error: Failed to update system."
+        echo -e "${RED}Error: Failed to update system.${NC}"
     fi
 }
 
 # Function to install sudo and wget
 install_utilities() {
     if sudo apt install -y sudo wget; then
-        echo "Utilities (sudo and wget) installed successfully."
+        echo -e "${GREEN}Utilities (sudo and wget) installed successfully.${NC}"
     else
-        echo "Error: Failed to install utilities (sudo and wget)."
+        echo -e "${RED}Error: Failed to install utilities (sudo and wget).${NC}"
     fi
 }
 
 # Function to install Nginx and obtain SSL certificates
 install_nginx() {
     if sudo apt install nginx -y && sudo apt install snapd -y && sudo snap install core && sudo snap install --classic certbot && sudo ln -s /snap/bin/certbot /usr/bin/certbot && sudo certbot --nginx; then
-        echo "Nginx installed and SSL certificates obtained successfully."
+        echo -e "${GREEN}Nginx installed and SSL certificates obtained successfully.${NC}"
     else
-        echo "Error: Failed to install Nginx or obtain SSL certificates."
+        echo -e "${RED}Error: Failed to install Nginx or obtain SSL certificates.${NC}"
     fi
 }
 
 # Function to install x-ui
 install_x_ui() {
     if bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh); then
-        echo "x-ui installed successfully."
+        echo -e "${GREEN}x-ui installed successfully.${NC}"
     else
-        echo "Error: Failed to install x-ui."
+        echo -e "${RED}Error: Failed to install x-ui.${NC}"
     fi
 }
 
 # Function to install Telegram MTProto proxy
 install_telegram_proxy() {
     if curl -L -o mtp_install.sh https://git.io/fj5ru && bash mtp_install.sh; then
-        echo "Telegram MTProto proxy installed successfully."
+        echo -e "${GREEN}Telegram MTProto proxy installed successfully.${NC}"
     else
-        echo "Error: Failed to install Telegram MTProto proxy."
+        echo -e "${RED}Error: Failed to install Telegram MTProto proxy.${NC}"
     fi
 }
 
 # Function to install OpenVPN
 install_openvpn() {
     if curl -O https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh && chmod +x openvpn-install.sh && ./openvpn-install.sh; then
-        echo "OpenVPN installed successfully."
+        echo -e "${GREEN}OpenVPN installed successfully.${NC}"
     else
-        echo "Error: Failed to install OpenVPN."
+        echo -e "${RED}Error: Failed to install OpenVPN.${NC}"
     fi
 }
 
@@ -60,20 +67,20 @@ create_swap() {
     case $swap_size in
         512M)
             if sudo fallocate -l 512M /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
-                echo "Swap file created successfully."
+                echo -e "${GREEN}Swap file created successfully.${NC}"
             else
-                echo "Error: Failed to create swap file."
+                echo -e "${RED}Error: Failed to create swap file.${NC}"
             fi
             ;;
         1G)
             if sudo fallocate -l 1G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
-                echo "Swap file created successfully."
+                echo -e "${GREEN}Swap file created successfully.${NC}"
             else
-                echo "Error: Failed to create swap file."
+                echo -e "${RED}Error: Failed to create swap file.${NC}"
             fi
             ;;
         *)
-            echo "Invalid choice. Please choose either 512M or 1G."
+            echo -e "${RED}Invalid choice. Please choose either 512M or 1G.${NC}"
             ;;
     esac
 }
@@ -82,18 +89,18 @@ create_swap() {
 change_ssh_port() {
     read -p "Enter the new SSH port: " new_ssh_port
     if sudo sed -i "s/#Port 22/Port $new_ssh_port/g" /etc/ssh/sshd_config && sudo systemctl restart ssh; then
-        echo "SSH port changed successfully."
+        echo -e "${GREEN}SSH port changed successfully.${NC}"
     else
-        echo "Error: Failed to change SSH port."
+        echo -e "${RED}Error: Failed to change SSH port.${NC}"
     fi
 }
 
 # Function to add a cron job to reboot the system every 2 days
 schedule_reboot() {
     if (crontab -l ; echo "0 0 */2 * * sudo /sbin/reboot") | crontab -; then
-        echo "Scheduled system reboot every 2 days."
+        echo -e "${GREEN}Scheduled system reboot every 2 days.${NC}"
     else
-        echo "Error: Failed to schedule system reboot."
+        echo -e "${RED}Error: Failed to schedule system reboot.${NC}"
     fi
 }
 
@@ -123,28 +130,106 @@ net.ipv4.tcp_timestamps = 1
 # Increase TCP max buffer size
 net.ipv4.tcp_mem = 16777216 16777216 16777216
 EOF
-    sudo sysctl -p; then
-        echo "VPS optimized for x-ui proxy successfully."
+     sudo sysctl -p; then
+        echo -e "${GREEN}VPS optimized for x-ui proxy successfully.${NC}"
     else
-        echo "Error: Failed to optimize VPS for x-ui proxy."
+        echo -e "${RED}Error: Failed to optimize VPS for x-ui proxy.${NC}"
     fi
+}
+
+# Function for firewall management
+firewall_management() {
+    while true; do
+        echo -e "${LGREEN}===== Firewall Management =====${NC}"
+        echo -e " ${YELLOW}1.${NC} View open ports"
+        echo -e " ${YELLOW}2.${NC} Add port(s)"
+        echo -e " ${YELLOW}3.${NC} Delete port(s)"
+        echo -e " ${YELLOW}4.${NC} Enable/Disable UFW"
+        echo -e " ${YELLOW}0.${NC} Back"
+        echo -e "${LGREEN}===============================${NC}"
+        read -p "Enter your choice: " firewall_choice
+        case $firewall_choice in
+            1) view_open_ports ;;
+            2) add_ports ;;
+            3) delete_ports ;;
+            4) enable_disable_ufw ;;
+            0) break ;;
+            *) echo -e "${RED}Invalid choice. Please enter a number between 0 and 4.${NC}" ;;
+        esac
+    done
+}
+
+# Function to view open ports
+view_open_ports() {
+    sudo netstat -tuln
+}
+
+# Function to add ports
+add_ports() {
+    read -p "Enter port(s) to add (comma-separated): " ports
+    IFS=',' read -r -a port_array <<< "$ports"
+    for port in "${port_array[@]}"; do
+        if sudo ufw allow "$port"; then
+            echo -e "${GREEN}Port $port added successfully.${NC}"
+        else
+            echo -e "${RED}Error: Failed to add port $port.${NC}"
+        fi
+    done
+}
+
+# Function to delete ports
+delete_ports() {
+    read -p "Enter port(s) to delete (comma-separated): " ports
+    IFS=',' read -r -a port_array <<< "$ports"
+    for port in "${port_array[@]}"; do
+        if sudo ufw delete allow "$port"; then
+            echo -e "${GREEN}Port $port deleted successfully.${NC}"
+        else
+            echo -e "${RED}Error: Failed to delete port $port.${NC}"
+        fi
+    done
+}
+
+# Function to enable/disable UFW
+enable_disable_ufw() {
+    read -p "Enable or Disable UFW? (enable/disable): " ufw_choice
+    case $ufw_choice in
+        enable)
+            if sudo ufw enable; then
+                echo -e "${GREEN}UFW enabled successfully.${NC}"
+            else
+                echo -e "${RED}Error: Failed to enable UFW.${NC}"
+            fi
+            ;;
+        disable)
+            if sudo ufw disable; then
+                echo -e "${GREEN}UFW disabled successfully.${NC}"
+            else
+                echo -e "${RED}Error: Failed to disable UFW.${NC}"
+            fi
+            ;;
+        *)
+            echo -e "${RED}Invalid choice. Please enter 'enable' or 'disable'.${NC}"
+            ;;
+    esac
 }
 
 # Function to display menu
 display_menu() {
-    echo "========== Menu =========="
-    echo "1. Update system"
-    echo "2. Install utilities (sudo and wget)"
-    echo "3. Install Nginx and obtain SSL certificates"
-    echo "4. Install x-ui"
-    echo "5. Install Telegram MTProto proxy"
-    echo "6. Install OpenVPN"
-    echo "7. Create swap file"
-    echo "8. Change SSH port"
-    echo "9. Schedule system reboot every 2 days"
-    echo "10. Optimize VPS for x-ui proxy"
-    echo "0. Exit"
-    echo "=========================="
+    echo -e "${LGREEN}========== Menu ==========${NC}"
+    echo -e " ${YELLOW}1.${NC} Update system"
+    echo -e " ${YELLOW}2.${NC} Install utilities (sudo and wget)"
+    echo -e " ${YELLOW}3.${NC} Install Nginx and obtain SSL certificates"
+    echo -e " ${YELLOW}4.${NC} Install x-ui"
+    echo -e " ${YELLOW}5.${NC} Install Telegram MTProto proxy"
+    echo -e " ${YELLOW}6.${NC} Install OpenVPN"
+    echo -e " ${YELLOW}7.${NC} Create swap file"
+    echo -e " ${YELLOW}8.${NC} Change SSH port"
+    echo -e " ${YELLOW}9.${NC} Schedule system reboot every 2 days"
+    echo -e " ${YELLOW}10.${NC} Optimize VPS for x-ui proxy"
+    echo -e " ${YELLOW}11.${NC} Firewall Management"
+    echo -e " ${YELLOW}0.${NC} Exit"
+    echo -e "${LGREEN}==========================${NC}"
 }
 
 # Main script
@@ -162,7 +247,8 @@ while true; do
         8) change_ssh_port ;;
         9) schedule_reboot ;;
         10) optimize_vps_for_x_ui_proxy ;;
-        0) echo "Exiting..."; break ;;
-        *) echo "Invalid choice. Please enter a number between 0 and 10." ;;
+        11) firewall_management ;;
+        0) echo -e "${LGREEN}Exiting...${NC}"; break ;;
+        *) echo -e "${RED}Invalid choice. Please enter a number between 0 and 11.${NC}" ;;
     esac
 done
