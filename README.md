@@ -2,7 +2,7 @@ curl -O https://raw.githubusercontent.com/jeet8200/dev/main/autostatup.sh?token=
 
 chmod +x autostartup.sh
 
-bash autostatup.sh
+bash autostartup.sh
 
 -------------------------------------
        1) update_system 
