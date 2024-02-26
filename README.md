@@ -17,5 +17,5 @@ bash autostartup.sh
    10) create_swap 
    11) change_ssh_port 
     12) schedule_reboot 
-    13) optimize_vps_for_x_ui_proxy 
+    13) optimize_vps_for_x_ui_proxy ;
      14) firewall_management ;
