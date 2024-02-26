@@ -7,12 +7,18 @@ YELLOW='\033[0;33m'
 LGREEN='\033[1;32m' # Light Green
 NC='\033[0m' # No Color
 
+# Function to handle errors
+handle_error() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
 # Function to update the package lists, upgrade installed packages, and clean up
 update_system() {
     if sudo apt update -y && sudo apt upgrade -y && sudo apt autoclean -y && sudo apt autoremove -y; then
         echo -e "${GREEN}System update completed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to update system.${NC}"
+        handle_error "Failed to update system."
     fi
 }
 
@@ -21,7 +27,7 @@ install_utilities() {
     if sudo apt install -y sudo wget; then
         echo -e "${GREEN}Utilities (sudo and wget) installed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to install utilities (sudo and wget).${NC}"
+        handle_error "Failed to install utilities (sudo and wget)."
     fi
 }
 
@@ -30,7 +36,40 @@ install_nginx() {
     if sudo apt install nginx -y && sudo apt install snapd -y && sudo snap install core && sudo snap install --classic certbot && sudo ln -s /snap/bin/certbot /usr/bin/certbot && sudo certbot --nginx; then
         echo -e "${GREEN}Nginx installed and SSL certificates obtained successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to install Nginx or obtain SSL certificates.${NC}"
+        handle_error "Failed to install Nginx or obtain SSL certificates."
+    fi
+}
+
+# Function to manage Nginx: stop, start, reload, restart
+manage_nginx() {
+    echo -e "${LGREEN}===== Nginx Management =====${NC}"
+    echo -e " ${YELLOW}1.${NC} Stop Nginx"
+    echo -e " ${YELLOW}2.${NC} Start Nginx"
+    echo -e " ${YELLOW}3.${NC} Reload Nginx"
+    echo -e " ${YELLOW}4.${NC} Restart Nginx"
+    echo -e " ${YELLOW}5.${NC} Uninstall Nginx"
+    echo -e " ${YELLOW}0.${NC} Back"
+    echo -e "${LGREEN}============================${NC}"
+    read -p "Enter your choice: " nginx_choice
+    case $nginx_choice in
+        1) sudo systemctl stop nginx ;;
+        2) sudo systemctl start nginx ;;
+        3) sudo systemctl reload nginx ;;
+        4) sudo systemctl restart nginx ;;
+        5) uninstall_nginx ;;
+        0) return ;;
+        *) handle_error "Invalid choice. Please enter a number between 0 and 5." ;;
+    esac
+    echo -e "${GREEN}Nginx action completed successfully.${NC}"
+}
+
+# Function to configure Nginx for wildcard SSL
+configure_nginx_wildcard_ssl() {
+    read -p "Enter your domain name (e.g., example.com): " domain_name
+    if sudo certbot --nginx -d "$domain_name" -d "*.$domain_name"; then
+        echo -e "${GREEN}Wildcard SSL configured successfully.${NC}"
+    else
+        handle_error "Failed to configure wildcard SSL for $domain_name."
     fi
 }
 
@@ -39,7 +78,7 @@ install_x_ui() {
     if bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh); then
         echo -e "${GREEN}x-ui installed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to install x-ui.${NC}"
+        handle_error "Failed to install x-ui."
     fi
 }
 
@@ -48,7 +87,7 @@ install_telegram_proxy() {
     if curl -L -o mtp_install.sh https://git.io/fj5ru && bash mtp_install.sh; then
         echo -e "${GREEN}Telegram MTProto proxy installed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to install Telegram MTProto proxy.${NC}"
+        handle_error "Failed to install Telegram MTProto proxy."
     fi
 }
 
@@ -57,7 +96,16 @@ install_openvpn() {
     if curl -O https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh && chmod +x openvpn-install.sh && ./openvpn-install.sh; then
         echo -e "${GREEN}OpenVPN installed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to install OpenVPN.${NC}"
+        handle_error "Failed to install OpenVPN."
+    fi
+}
+
+# Function to install fail2ban
+install_fail2ban() {
+    if sudo apt install fail2ban -y; then
+        echo -e "${GREEN}fail2ban installed successfully.${NC}"
+    else
+        handle_error "Failed to install fail2ban."
     fi
 }
 
@@ -69,18 +117,18 @@ create_swap() {
             if sudo fallocate -l 512M /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
                 echo -e "${GREEN}Swap file created successfully.${NC}"
             else
-                echo -e "${RED}Error: Failed to create swap file.${NC}"
+                handle_error "Failed to create swap file."
             fi
             ;;
         1G)
             if sudo fallocate -l 1G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
                 echo -e "${GREEN}Swap file created successfully.${NC}"
             else
-                echo -e "${RED}Error: Failed to create swap file.${NC}"
+                handle_error "Failed to create swap file."
             fi
             ;;
         *)
-            echo -e "${RED}Invalid choice. Please choose either 512M or 1G.${NC}"
+            handle_error "Invalid choice. Please choose either 512M or 1G."
             ;;
     esac
 }
@@ -91,7 +139,7 @@ change_ssh_port() {
     if sudo sed -i "s/#Port 22/Port $new_ssh_port/g" /etc/ssh/sshd_config && sudo systemctl restart ssh; then
         echo -e "${GREEN}SSH port changed successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to change SSH port.${NC}"
+        handle_error "Failed to change SSH port."
     fi
 }
 
@@ -100,7 +148,7 @@ schedule_reboot() {
     if (crontab -l ; echo "0 0 */2 * * sudo /sbin/reboot") | crontab -; then
         echo -e "${GREEN}Scheduled system reboot every 2 days.${NC}"
     else
-        echo -e "${RED}Error: Failed to schedule system reboot.${NC}"
+        handle_error "Failed to schedule system reboot."
     fi
 }
 
@@ -133,7 +181,7 @@ EOF
      sudo sysctl -p; then
         echo -e "${GREEN}VPS optimized for x-ui proxy successfully.${NC}"
     else
-        echo -e "${RED}Error: Failed to optimize VPS for x-ui proxy.${NC}"
+        handle_error "Failed to optimize VPS for x-ui proxy."
     fi
 }
 
@@ -154,7 +202,7 @@ firewall_management() {
             3) delete_ports ;;
             4) enable_disable_ufw ;;
             0) break ;;
-            *) echo -e "${RED}Invalid choice. Please enter a number between 0 and 4.${NC}" ;;
+            *) handle_error "Invalid choice. Please enter a number between 0 and 4." ;;
         esac
     done
 }
@@ -172,7 +220,7 @@ add_ports() {
         if sudo ufw allow "$port"; then
             echo -e "${GREEN}Port $port added successfully.${NC}"
         else
-            echo -e "${RED}Error: Failed to add port $port.${NC}"
+            handle_error "Failed to add port $port."
         fi
     done
 }
@@ -185,7 +233,7 @@ delete_ports() {
         if sudo ufw delete allow "$port"; then
             echo -e "${GREEN}Port $port deleted successfully.${NC}"
         else
-            echo -e "${RED}Error: Failed to delete port $port.${NC}"
+            handle_error "Failed to delete port $port."
         fi
     done
 }
@@ -198,18 +246,18 @@ enable_disable_ufw() {
             if sudo ufw enable; then
                 echo -e "${GREEN}UFW enabled successfully.${NC}"
             else
-                echo -e "${RED}Error: Failed to enable UFW.${NC}"
+                handle_error "Failed to enable UFW."
             fi
             ;;
         disable)
             if sudo ufw disable; then
                 echo -e "${GREEN}UFW disabled successfully.${NC}"
             else
-                echo -e "${RED}Error: Failed to disable UFW.${NC}"
+                handle_error "Failed to disable UFW."
             fi
             ;;
         *)
-            echo -e "${RED}Invalid choice. Please enter 'enable' or 'disable'.${NC}"
+            handle_error "Invalid choice. Please enter 'enable' or 'disable'."
             ;;
     esac
 }
@@ -220,14 +268,17 @@ display_menu() {
     echo -e " ${YELLOW}1.${NC} Update system"
     echo -e " ${YELLOW}2.${NC} Install utilities (sudo and wget)"
     echo -e " ${YELLOW}3.${NC} Install Nginx and obtain SSL certificates"
-    echo -e " ${YELLOW}4.${NC} Install x-ui"
-    echo -e " ${YELLOW}5.${NC} Install Telegram MTProto proxy"
-    echo -e " ${YELLOW}6.${NC} Install OpenVPN"
-    echo -e " ${YELLOW}7.${NC} Create swap file"
-    echo -e " ${YELLOW}8.${NC} Change SSH port"
-    echo -e " ${YELLOW}9.${NC} Schedule system reboot every 2 days"
-    echo -e " ${YELLOW}10.${NC} Optimize VPS for x-ui proxy"
-    echo -e " ${YELLOW}11.${NC} Firewall Management"
+    echo -e " ${YELLOW}4.${NC} Manage Nginx"
+    echo -e " ${YELLOW}5.${NC} Configure Nginx for wildcard SSL"
+    echo -e " ${YELLOW}6.${NC} Install x-ui"
+    echo -e " ${YELLOW}7.${NC} Install Telegram MTProto proxy"
+    echo -e " ${YELLOW}8.${NC} Install OpenVPN"
+    echo -e " ${YELLOW}9.${NC} Install fail2ban"
+    echo -e " ${YELLOW}10.${NC} Create swap file"
+    echo -e " ${YELLOW}11.${NC} Change SSH port"
+    echo -e " ${YELLOW}12.${NC} Schedule system reboot every 2 days"
+    echo -e " ${YELLOW}13.${NC} Optimize VPS for x-ui proxy"
+    echo -e " ${YELLOW}14.${NC} Firewall Management"
     echo -e " ${YELLOW}0.${NC} Exit"
     echo -e "${LGREEN}==========================${NC}"
 }
@@ -240,15 +291,18 @@ while true; do
         1) update_system ;;
         2) install_utilities ;;
         3) install_nginx ;;
-        4) install_x_ui ;;
-        5) install_telegram_proxy ;;
-        6) install_openvpn ;;
-        7) create_swap ;;
-        8) change_ssh_port ;;
-        9) schedule_reboot ;;
-        10) optimize_vps_for_x_ui_proxy ;;
-        11) firewall_management ;;
+        4) manage_nginx ;;
+        5) configure_nginx_wildcard_ssl ;;
+        6) install_x_ui ;;
+        7) install_telegram_proxy ;;
+        8) install_openvpn ;;
+        9) install_fail2ban ;;
+        10) create_swap ;;
+        11) change_ssh_port ;;
+        12) schedule_reboot ;;
+        13) optimize_vps_for_x_ui_proxy ;;
+        14) firewall_management ;;
         0) echo -e "${LGREEN}Exiting...${NC}"; break ;;
-        *) echo -e "${RED}Invalid choice. Please enter a number between 0 and 11.${NC}" ;;
+        *) handle_error "Invalid choice. Please enter a number between 0 and 14." ;;
     esac
 done
