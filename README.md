@@ -5,7 +5,7 @@ chmod +x autostartup.sh
 bash autostartup.sh
 
 -------------------------------------
-  1) update_system ;;
+  1) update_system 
         2) install_utilities 
         3) install_nginx 
         4) manage_nginx 
