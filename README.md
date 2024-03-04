@@ -12,7 +12,7 @@ bash autostartup.sh;
 5) configure_nginx_wildcard_ssl ;
 6) install_x_ui ;
 7) install_telegram_proxy ;
-8) install_openvpn ;
+8) install_openvpn &cloak ;
 9) install_fail2ban ;
 10) create_swap ;
 11) change_ssh_port ;
