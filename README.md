@@ -12,7 +12,7 @@ bash autostartup.sh;
 5) configure_nginx_wildcard_ssl ;
 6) install_x_ui sanaie ;
 7) install_telegram_proxy elrand ;
-8) install_openvpn &cloak ;
+8) install_openvpn &cloak&stunnel ;
 9) install_fail2ban ;
 10) create_swap 512mb 1G ;
 11) change_ssh_port ;
