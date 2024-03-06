@@ -91,12 +91,12 @@ install_telegram_proxy() {
     fi
 }
 
-# Function to install OpenVPN
+# Function to install OpenVPN and stunnel
 install_openvpn() {
-    if curl -O https://raw.githubusercontent.com/angristan/openvpn-install/master/openvpn-install.sh && chmod +x openvpn-install.sh && ./openvpn-install.sh; then
-        echo -e "${GREEN}OpenVPN installed successfully.${NC}"
+    if sudo apt install openvpn stunnel4 -y; then
+        echo -e "${GREEN}OpenVPN and stunnel installed successfully.${NC}"
     else
-        handle_error "Failed to install OpenVPN."
+        handle_error "Failed to install OpenVPN and stunnel."
     fi
 }
 
@@ -272,7 +272,7 @@ display_menu() {
     echo -e " ${YELLOW}5.${NC} Configure Nginx for wildcard SSL"
     echo -e " ${YELLOW}6.${NC} Install x-ui"
     echo -e " ${YELLOW}7.${NC} Install Telegram MTProto proxy"
-    echo -e " ${YELLOW}8.${NC} Install OpenVPN"
+    echo -e " ${YELLOW}8.${NC} Install OpenVPN and stunnel"
     echo -e " ${YELLOW}9.${NC} Install fail2ban"
     echo -e " ${YELLOW}10.${NC} Create swap file"
     echo -e " ${YELLOW}11.${NC} Change SSH port"
