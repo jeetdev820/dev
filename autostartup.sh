@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 # Define text colors
 RED='\033[0;31m'
