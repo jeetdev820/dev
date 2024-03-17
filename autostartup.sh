@@ -155,9 +155,6 @@ schedule_reboot() {
 # Function to optimize VPS for x-ui proxy
 optimize_vps_for_x_ui_proxy() {
     if sudo nano /etc/sysctl.conf && cat <<EOF >> /etc/sysctl.conf
-# Enable TCP window scaling
-net.ipv4.tcp_window_scaling = 1
-
 # Increase TCP buffer sizes
 net.core.rmem_default = 262144
 net.core.rmem_max = 16777216
@@ -171,12 +168,33 @@ net.ipv4.tcp_fin_timeout = 15
 
 # Turn on window scaling which can enlarge the transfer window.
 net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_sack=1
 
 # Enable timestamps as defined in RFC1323.
 net.ipv4.tcp_timestamps = 1
 
 # Increase TCP max buffer size
 net.ipv4.tcp_mem = 16777216 16777216 16777216
+
+# Security Enhancements
+#net.ipv4.conf.default.rp_filter = 1
+# Optimize ARP Cache
+net.ipv4.neigh.default.gc_stale_time = 120
+# Increase Maximum Port Range
+net.ipv4.ip_local_port_range = 1024 65000
+net.core.somaxconn = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+#net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 300
+
+
+net.core.default_qdisc=fq
+net.ipv4.tcp_congestion_control=bbr
+vm.swappiness=65
+# Memory Management for 512mb ram 512swap 5to10% total ram
+vm.dirty_ratio = 5
+vm.dirty_background_ratio = 3
+
 EOF
      sudo sysctl -p; then
         echo -e "${GREEN}VPS optimized for x-ui proxy successfully.${NC}"
