@@ -66,12 +66,98 @@ manage_nginx() {
 # Function to configure Nginx for wildcard SSL
 configure_nginx_wildcard_ssl() {
     read -p "Enter your domain name (e.g., example.com): " domain_name
-    if sudo certbot --nginx -d "$domain_name" -d "*.$domain_name"; then
-        echo -e "${GREEN}Wildcard SSL configured successfully.${NC}"
-    else
-        handle_error "Failed to configure wildcard SSL for $domain_name."
+    
+    # Validate the domain name input
+    if [[ ! "$domain_name" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+        handle_error "Invalid domain name. Please enter a valid domain."
+        return 1
     fi
+
+    # Choose the DNS provider
+    echo "Choose your DNS provider:"
+    echo "1) Cloudflare"
+    echo "2) Gcore"
+    read -p "Enter the number corresponding to your DNS provider: " dns_provider_choice
+
+    case $dns_provider_choice in
+        1)
+            dns_plugin="dns-cloudflare"
+            read -p "Enter your Cloudflare email: " cloudflare_email
+            read -s -p "Enter your Cloudflare API key: " cloudflare_api_key
+            echo
+
+            # Save the Cloudflare API credentials
+            cloudflare_credentials_file=~/.secrets/certbot/cloudflare.ini
+            mkdir -p $(dirname "$cloudflare_credentials_file")
+            echo "dns_cloudflare_email = $cloudflare_email" | sudo tee "$cloudflare_credentials_file" > /dev/null
+            echo "dns_cloudflare_api_key = $cloudflare_api_key" | sudo tee -a "$cloudflare_credentials_file" > /dev/null
+
+            # Secure the credentials file
+            sudo chmod 600 "$cloudflare_credentials_file"
+            ;;
+        2)
+            dns_plugin="dns-gcore"
+            read -s -p "Enter your Gcore API token: " gcore_api_token
+            echo
+
+            # Save the Gcore API credentials
+            gcore_credentials_file=~/.secrets/certbot/gcore.ini
+            mkdir -p $(dirname "$gcore_credentials_file")
+            echo "dns_gcore_api_token = $gcore_api_token" | sudo tee "$gcore_credentials_file" > /dev/null
+
+            # Secure the credentials file
+            sudo chmod 600 "$gcore_credentials_file"
+            ;;
+        *)
+            handle_error "Invalid choice. Please choose either 1 for Cloudflare or 2 for Gcore."
+            return 1
+            ;;
+    esac
+
+    # Certbot command with the chosen DNS challenge plugin
+    if sudo certbot certonly --$dns_plugin \
+            -d "$domain_name" \
+            -d "*.$domain_name" \
+            --agree-tos --non-interactive --email your-email@example.com; then
+        echo -e "${GREEN}Wildcard SSL certificate obtained successfully for $domain_name.${NC}"
+
+        # Configure Nginx to use the obtained certificate
+        nginx_config_file="/etc/nginx/sites-available/$domain_name.conf"
+        if sudo tee "$nginx_config_file" > /dev/null <<EOL
+server {
+    listen 443 ssl;
+    server_name $domain_name *.$domain_name;
+
+    ssl_certificate /etc/letsencrypt/live/$domain_name/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$domain_name/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8080; # Adjust according to your setup
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
 }
+EOL
+        then
+            echo -e "${GREEN}Nginx configuration updated successfully for $domain_name.${NC}"
+            sudo ln -s "$nginx_config_file" /etc/nginx/sites-enabled/
+            sudo systemctl reload nginx
+        else
+            handle_error "Failed to configure Nginx for $domain_name."
+            return 1
+        fi
+    else
+        handle_error "Failed to obtain wildcard SSL certificate for $domain_name."
+        return 1
+    fi
+
+    # Optional: Log the successful SSL configuration
+    log_file="/var/log/nginx_ssl_setup.log"
+    echo "$(date): Successfully configured wildcard SSL for $domain_name using $dns_plugin" | sudo tee -a "$log_file"
+}
+
 
 # Function to install x-ui
 install_x_ui() {
