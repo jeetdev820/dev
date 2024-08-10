@@ -111,7 +111,7 @@ install_fail2ban() {
 
 # Function to create a swap file
 create_swap() {
-    read -p "Choose swap size (512M or 1G): " swap_size
+    read -p "Choose swap size (512M, 1G, or 2G): " swap_size
     case $swap_size in
         512M)
             if sudo fallocate -l 512M /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
@@ -127,11 +127,19 @@ create_swap() {
                 handle_error "Failed to create swap file."
             fi
             ;;
+        2G)
+            if sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
+                echo -e "${GREEN}Swap file created successfully.${NC}"
+            else
+                handle_error "Failed to create swap file."
+            fi
+            ;;
         *)
-            handle_error "Invalid choice. Please choose either 512M or 1G."
+            handle_error "Invalid choice. Please choose either 512M, 1G, or 2G."
             ;;
     esac
 }
+
 
 # Function to change SSH port
 change_ssh_port() {
