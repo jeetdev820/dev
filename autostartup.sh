@@ -167,6 +167,27 @@ install_x_ui() {
     fi
 }
 
+# Function to handle Reality-EZ menu
+handle_reality_ez() {
+    echo -e "${LGREEN}===== Reality-EZ Management =====${NC}"
+    echo -e " ${YELLOW}1.${NC} Installation"
+    echo -e " ${YELLOW}2.${NC} Manager"
+    echo -e " ${YELLOW}3.${NC} Show User Config by Username"
+    echo -e " ${YELLOW}4.${NC} Restart"
+    echo -e " ${YELLOW}0.${NC} Back"
+    echo -e "${LGREEN}==============================${NC}"
+    read -p "Enter your choice: " reality_ez_choice
+    case $reality_ez_choice in
+        1) bash <(curl -sL https://bit.ly/realityez) ;;
+        2) bash <(curl -sL https://bit.ly/realityez) -m ;;
+        3) read -p "Enter the username: " username; bash <(curl -sL https://bit.ly/realityez) --show-user "$username" ;;
+        4) bash <(curl -sL https://bit.ly/realityez) -r ;;
+        0) return ;;
+        *) handle_error "Invalid choice. Please enter a number between 0 and 4." ;;
+    esac
+    echo -e "${GREEN}Reality-EZ action completed successfully.${NC}"
+}
+
 # Function to install Telegram MTProto proxy
 install_telegram_proxy() {
     if curl -L -o mtp_install.sh https://git.io/fj5ru && bash mtp_install.sh; then
@@ -196,7 +217,18 @@ install_fail2ban() {
 
 # Function to create a swap file
 create_swap() {
-    read -p "Choose swap size (512M, 1G, or 2G): " swap_size
+    echo -e "${LGREEN}===== Create Swap File =====${NC}"
+    echo -e " ${YELLOW}1.${NC} 512M"
+    echo -e " ${YELLOW}2.${NC} 1G"
+    echo -e " ${YELLOW}3.${NC} 2G"
+    read -p "Enter your choice: " swap_size
+    case $swap_size in
+        1) swap_size="512M" ;;
+        2) swap_size="1G" ;;
+        3) swap_size="2G" ;;
+        *) handle_error "Invalid choice. Please select 1, 2, or 3." ;;
+    esac
+    
     case $swap_size in
         512M)
             if sudo fallocate -l 512M /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile && echo "/swapfile none swap sw 0 0" | sudo tee -a /etc/fstab; then
@@ -234,27 +266,6 @@ uninstall_nginx() {
     fi
 }
 
-# Function to handle Reality-EZ menu
-handle_reality_ez() {
-    echo -e "${LGREEN}===== Reality-EZ Management =====${NC}"
-    echo -e " ${YELLOW}1.${NC} Installation"
-    echo -e " ${YELLOW}2.${NC} Manager"
-    echo -e " ${YELLOW}3.${NC} Show User Config by Username"
-    echo -e " ${YELLOW}4.${NC} Restart"
-    echo -e " ${YELLOW}0.${NC} Back"
-    echo -e "${LGREEN}==============================${NC}"
-    read -p "Enter your choice: " reality_ez_choice
-    case $reality_ez_choice in
-        1) bash <(curl -sL https://bit.ly/realityez) ;;
-        2) bash <(curl -sL https://bit.ly/realityez) -m ;;
-        3) read -p "Enter the username: " username; bash <(curl -sL https://bit.ly/realityez) --show-user "$username" ;;
-        4) bash <(curl -sL https://bit.ly/realityez) -r ;;
-        0) return ;;
-        *) handle_error "Invalid choice. Please enter a number between 0 and 4." ;;
-    esac
-    echo -e "${GREEN}Reality-EZ action completed successfully.${NC}"
-}
-
 # Main menu
 main_menu() {
     while true; do
@@ -265,12 +276,12 @@ main_menu() {
         echo -e " ${YELLOW}4.${NC} Manage Nginx"
         echo -e " ${YELLOW}5.${NC} Configure Nginx Wildcard SSL"
         echo -e " ${YELLOW}6.${NC} Install x-ui"
-        echo -e " ${YELLOW}7.${NC} Install Telegram MTProto Proxy"
-        echo -e " ${YELLOW}8.${NC} Install OpenVPN and Stunnel"
-        echo -e " ${YELLOW}9.${NC} Install fail2ban"
-        echo -e " ${YELLOW}10.${NC} Create Swap File"
-        echo -e " ${YELLOW}11.${NC} Uninstall Nginx"
-        echo -e " ${YELLOW}12.${NC} Reality-EZ Menu"
+        echo -e " ${YELLOW}7.${NC} Reality-EZ Menu"
+        echo -e " ${YELLOW}8.${NC} Install Telegram MTProto Proxy"
+        echo -e " ${YELLOW}9.${NC} Install OpenVPN and Stunnel"
+        echo -e " ${YELLOW}10.${NC} Install fail2ban"
+        echo -e " ${YELLOW}11.${NC} Create Swap File"
+        echo -e " ${YELLOW}12.${NC} Uninstall Nginx"
         echo -e " ${YELLOW}0.${NC} Exit"
         echo -e "${LGREEN}=====================${NC}"
         read -p "Enter your choice: " main_choice
@@ -281,12 +292,12 @@ main_menu() {
             4) manage_nginx ;;
             5) configure_nginx_wildcard_ssl ;;
             6) install_x_ui ;;
-            7) install_telegram_proxy ;;
-            8) install_openvpn ;;
-            9) install_fail2ban ;;
-            10) create_swap ;;
-            11) uninstall_nginx ;;
-            12) handle_reality_ez ;;
+            7) handle_reality_ez ;;
+            8) install_telegram_proxy ;;
+            9) install_openvpn ;;
+            10) install_fail2ban ;;
+            11) create_swap ;;
+            12) uninstall_nginx ;;
             0) exit 0 ;;
             *) handle_error "Invalid choice. Please enter a number between 0 and 12." ;;
         esac
