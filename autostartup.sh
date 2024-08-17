@@ -266,6 +266,15 @@ uninstall_nginx() {
     fi
 }
 
+# Function to install Hiddify Panel
+install_hiddify_panel() {
+    if bash <(curl i.hiddify.com/release); then
+        echo -e "${GREEN}Hiddify Panel installed successfully.${NC}"
+    else
+        handle_error "Failed to install Hiddify Panel."
+    fi
+}
+
 # Main menu
 main_menu() {
     while true; do
@@ -277,11 +286,12 @@ main_menu() {
         echo -e " ${YELLOW}5.${NC} Configure Nginx Wildcard SSL"
         echo -e " ${YELLOW}6.${NC} Install x-ui"
         echo -e " ${YELLOW}7.${NC} Reality-EZ Menu"
-        echo -e " ${YELLOW}8.${NC} Install Telegram MTProto Proxy"
-        echo -e " ${YELLOW}9.${NC} Install OpenVPN and Stunnel"
-        echo -e " ${YELLOW}10.${NC} Install fail2ban"
-        echo -e " ${YELLOW}11.${NC} Create Swap File"
-        echo -e " ${YELLOW}12.${NC} Uninstall Nginx"
+        echo -e " ${YELLOW}8.${NC} Install Hiddify Panel"
+        echo -e " ${YELLOW}9.${NC} Install Telegram MTProto Proxy"
+        echo -e " ${YELLOW}10.${NC} Install OpenVPN and Stunnel"
+        echo -e " ${YELLOW}11.${NC} Install fail2ban"
+        echo -e " ${YELLOW}12.${NC} Create Swap File"
+        echo -e " ${YELLOW}13.${NC} Uninstall Nginx"
         echo -e " ${YELLOW}0.${NC} Exit"
         echo -e "${LGREEN}=====================${NC}"
         read -p "Enter your choice: " main_choice
@@ -293,13 +303,14 @@ main_menu() {
             5) configure_nginx_wildcard_ssl ;;
             6) install_x_ui ;;
             7) handle_reality_ez ;;
-            8) install_telegram_proxy ;;
-            9) install_openvpn ;;
-            10) install_fail2ban ;;
-            11) create_swap ;;
-            12) uninstall_nginx ;;
-            0) exit 0 ;;
-            *) handle_error "Invalid choice. Please enter a number between 0 and 12." ;;
+            8) install_hiddify_panel ;;
+            9) install_telegram_proxy ;;
+            10) install_openvpn ;;
+            11) install_fail2ban ;;
+            12) create_swap ;;
+            13) uninstall_nginx ;;
+             0) exit 0 ;;
+            *) handle_error "Invalid choice. Please enter a number between 0 and 13." ;;
         esac
     done
 }
