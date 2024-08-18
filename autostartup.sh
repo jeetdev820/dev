@@ -24,7 +24,7 @@ update_system() {
 
 # Function to install sudo and wget
 install_utilities() {
-    if sudo apt install -y sudo wget && apt install ufw ; then
+    if sudo apt install -y sudo wget  ; then
         echo -e "${GREEN}Utilities (sudo and wget) installed successfully.${NC}"
     else
         handle_error "Failed to install utilities (sudo and wget)."
