@@ -24,11 +24,26 @@ update_system() {
 
 # Function to install sudo and wget
 install_utilities() {
-    if sudo apt install -y sudo wget; then
-        echo -e "${GREEN}Utilities (sudo and wget) installed successfully.${NC}"
-    else
-        handle_error "Failed to install utilities (sudo and wget)."
-    fi
+    dialog --title "Install Essential Packages" --yesno "This operation will install essential packages like certbot,net-tools,zip and xclip. Do you want to proceed?" 10 60
+  response=$?
+
+  if [ $response -eq 0 ]; then
+    packages=("curl" "nano" "certbot" "cron" "ufw" "htop" "net-tools" "zip" "unzip" "xclip")
+
+    package_installed() {
+      dpkg -l | grep -q "^ii  $1"
+    }
+
+    for pkg in "${packages[@]}"; do
+      if ! package_installed "$pkg"; then
+        sudo apt install -y "$pkg"
+      fi
+    done
+
+    dialog --msgbox "Essential packages have been installed." 10 60
+  else
+    dialog --msgbox "Installation of essential packages canceled." 10 60
+  fi
 }
 
 # Function to install Nginx and obtain SSL certificates
