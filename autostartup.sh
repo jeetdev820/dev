@@ -256,6 +256,70 @@ create_swap() {
             ;;
     esac
 }
+# Function to change SSH port
+change_ssh_port() {
+    # Suggested ports - Commonly recommended alternatives to port 22
+    suggested_ports=("2022" "2222" "2200" "8022" "9222")
+    
+    echo "Please select a new SSH port from the suggested options below:"
+    for i in "${!suggested_ports[@]}"; do
+        echo "$((i + 1))) ${suggested_ports[$i]}"
+    done
+    
+    read -p "Enter the number corresponding to your choice (1-5) or enter a custom port: " port_choice
+
+    if [[ $port_choice =~ ^[1-5]$ ]]; then
+        new_ssh_port=${suggested_ports[$((port_choice - 1))]}
+    elif [[ $port_choice =~ ^[0-9]+$ && $port_choice -ge 1024 && $port_choice -le 65535 ]]; then
+        new_ssh_port=$port_choice
+    else
+        handle_error "Invalid choice. Please enter a valid port number."
+        return 1
+    fi
+
+    # Change the SSH port in the sshd_config file
+    if sudo sed -i "s/#Port 22/Port $new_ssh_port/g" /etc/ssh/sshd_config && sudo systemctl restart ssh; then
+        echo -e "${GREEN}SSH port changed successfully to $new_ssh_port.${NC}"
+    else
+        handle_error "Failed to change SSH port."
+        return 1
+    fi
+
+    # Ensure UFW is installed
+    if ! command -v ufw &> /dev/null; then
+        echo "UFW is not installed. Installing UFW..."
+        if sudo apt-get update && sudo apt-get install ufw -y; then
+            echo -e "${GREEN}UFW installed successfully.${NC}"
+        else
+            handle_error "Failed to install UFW."
+            return 1
+        fi
+    else
+        echo -e "${GREEN}UFW is already installed.${NC}"
+    fi
+
+    # Enable UFW if not already enabled
+    if sudo ufw status | grep -q "Status: inactive"; then
+        echo "UFW is not active. Enabling UFW..."
+        if sudo ufw enable; then
+            echo -e "${GREEN}UFW enabled successfully.${NC}"
+        else
+            handle_error "Failed to enable UFW."
+            return 1
+        fi
+    else
+        echo -e "${GREEN}UFW is already active.${NC}"
+    fi
+
+    # Add rate-limited rule for the new SSH port
+    echo "Adding UFW rule for SSH port $new_ssh_port with rate limiting..."
+    if sudo ufw limit "$new_ssh_port"/tcp; then
+        echo -e "${GREEN}UFW rule added successfully for port $new_ssh_port with rate limiting.${NC}"
+    else
+        handle_error "Failed to add UFW rule for SSH port $new_ssh_port."
+        return 1
+    fi
+}
 
 # Function to uninstall Nginx
 uninstall_nginx() {
@@ -291,7 +355,8 @@ main_menu() {
         echo -e " ${YELLOW}10.${NC} Install OpenVPN and Stunnel"
         echo -e " ${YELLOW}11.${NC} Install fail2ban"
         echo -e " ${YELLOW}12.${NC} Create Swap File"
-        echo -e " ${YELLOW}13.${NC} Uninstall Nginx"
+        echo -e " ${YELLOW}13.${NC} Change SSH port"
+        echo -e " ${YELLOW}14.${NC} Uninstall Nginx"
         echo -e " ${YELLOW}0.${NC} Exit"
         echo -e "${LGREEN}=====================${NC}"
         read -p "Enter your choice: " main_choice
@@ -308,7 +373,8 @@ main_menu() {
             10) install_openvpn ;;
             11) install_fail2ban ;;
             12) create_swap ;;
-            13) uninstall_nginx ;;
+            13) change_ssh_port ;;
+            14) uninstall_nginx ;;
              0) exit 0 ;;
             *) handle_error "Invalid choice. Please enter a number between 0 and 13." ;;
         esac
