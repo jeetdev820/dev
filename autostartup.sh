@@ -100,7 +100,7 @@ configure_nginx_wildcard_ssl() {
         1)
             dns_plugin="dns-cloudflare"
             read -p "Enter your Cloudflare email: " cloudflare_email
-            read -s -p "Enter your Cloudflare API key: " cloudflare_api_key
+            read -p "Enter your Cloudflare API key: " cloudflare_api_key
             echo
 
             # Save the Cloudflare API credentials
