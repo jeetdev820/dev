@@ -41,6 +41,20 @@ install_nginx() {
 }
 
 # Function to manage Nginx: stop, start, reload, restart
+# Define the function to handle adding a new domain
+add_new_domain() {
+    echo -e "${LGREEN}===== Add New Domain =====${NC}"
+    read -p "Enter the domain name (e.g., example.com): " domain_name
+    if [ -z "$domain_name" ]; then
+        handle_error "Domain name cannot be empty. Please try again."
+    else
+        sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/$domain_name
+        sudo ln -s /etc/nginx/sites-available/$domain_name /etc/nginx/sites-enabled/
+        echo -e "${GREEN}Domain $domain_name has been added and enabled.${NC}"
+        echo -e "Remember to configure the server block in /etc/nginx/sites-available/$domain_name and reload Nginx."
+    fi
+}
+
 manage_nginx() {
     echo -e "${LGREEN}===== Nginx Management =====${NC}"
     echo -e " ${YELLOW}1.${NC} Stop Nginx"
@@ -48,6 +62,7 @@ manage_nginx() {
     echo -e " ${YELLOW}3.${NC} Reload Nginx"
     echo -e " ${YELLOW}4.${NC} Restart Nginx"
     echo -e " ${YELLOW}5.${NC} Uninstall Nginx"
+    echo -e " ${YELLOW}6.${NC} Add New Domain"  # New option for adding a domain
     echo -e " ${YELLOW}0.${NC} Back"
     echo -e "${LGREEN}============================${NC}"
     read -p "Enter your choice: " nginx_choice
@@ -57,11 +72,13 @@ manage_nginx() {
         3) sudo systemctl reload nginx ;;
         4) sudo systemctl restart nginx ;;
         5) uninstall_nginx ;;
+        6) add_new_domain ;;  # Calls the function for adding a new domain
         0) return ;;
-        *) handle_error "Invalid choice. Please enter a number between 0 and 5." ;;
+        *) handle_error "Invalid choice. Please enter a number between 0 and 6." ;;
     esac
     echo -e "${GREEN}Nginx action completed successfully.${NC}"
 }
+
 
 # Function to configure Nginx for wildcard SSL
 configure_nginx_wildcard_ssl() {
