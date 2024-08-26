@@ -16,4 +16,5 @@ bash autostartup.sh;
 11) install_fail2ban ;;
 12) create_swap ;;
 13) change_ssh_port ;;
-14) uninstall_nginx ;;
+14) reboot evry 2 day ;;
+15) uninstall_nginx ;;
