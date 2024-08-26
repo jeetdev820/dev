@@ -375,7 +375,7 @@ main_menu() {
         echo -e " ${YELLOW}5.${NC} Configure Nginx Wildcard SSL"
         echo -e " ${YELLOW}6.${NC} Install x-ui"
         echo -e " ${YELLOW}7.${NC} Reality-EZ Menu"
-        echo -e " ${YELLOW}8.${NC} Install Hiddify Panel"
+        echo -e " ${YELLOW}8.${NC} Install Hiddify Panel Ubuntu 22+"
         echo -e " ${YELLOW}9.${NC} Install Telegram MTProto Proxy"
         echo -e " ${YELLOW}10.${NC} Install OpenVPN and Stunnel"
         echo -e " ${YELLOW}11.${NC} Install fail2ban"
