@@ -347,6 +347,7 @@ uninstall_nginx() {
     fi
 }
 
+
 # Function to install Hiddify Panel
 install_hiddify_panel() {
     if bash <(curl i.hiddify.com/release); then
@@ -355,7 +356,14 @@ install_hiddify_panel() {
         handle_error "Failed to install Hiddify Panel."
     fi
 }
-
+# Function to add a cron job to reboot the system every 2 days
+schedule_reboot() {
+    if (crontab -l ; echo "0 0 */2 * * sudo /sbin/reboot") | crontab -; then
+        echo -e "${GREEN}Scheduled system reboot every 2 days.${NC}"
+    else
+        handle_error "Failed to schedule system reboot."
+    fi
+}
 # Main menu
 main_menu() {
     while true; do
@@ -373,7 +381,8 @@ main_menu() {
         echo -e " ${YELLOW}11.${NC} Install fail2ban"
         echo -e " ${YELLOW}12.${NC} Create Swap File"
         echo -e " ${YELLOW}13.${NC} Change SSH port"
-        echo -e " ${YELLOW}14.${NC} Uninstall Nginx"
+        echo -e " ${YELLOW}14.${NC} Schedule system reboot every 2 days"
+        echo -e " ${YELLOW}15.${NC} Uninstall Nginx"
         echo -e " ${YELLOW}0.${NC} Exit"
         echo -e "${LGREEN}=====================${NC}"
         read -p "Enter your choice: " main_choice
@@ -391,7 +400,8 @@ main_menu() {
             11) install_fail2ban ;;
             12) create_swap ;;
             13) change_ssh_port ;;
-            14) uninstall_nginx ;;
+            14) schedule_reboot ;;
+            15) uninstall_nginx ;;
              0) exit 0 ;;
             *) handle_error "Invalid choice. Please enter a number between 0 and 13." ;;
         esac
