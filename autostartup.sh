@@ -114,7 +114,7 @@ configure_nginx_wildcard_ssl() {
             ;;
         2)
             dns_plugin="dns-gcore"
-            read -s -p "Enter your Gcore API token: " gcore_api_token
+            read -p "Enter your Gcore API token: " gcore_api_token
             echo
 
             # Save the Gcore API credentials
