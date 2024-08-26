@@ -10,7 +10,7 @@ bash autostartup.sh;
  5) configure_nginx_wildcard_ssl ;;
  6) install_x_ui ;;
  7) handle_reality_ez ;;
- 8) install_hiddify_panel ;;
+ 8) install_hiddify_panel Ubuntu 22+;;
  9) install_telegram_proxy ;;
 10) install_openvpn ;;
 11) install_fail2ban ;;
